@@ -1,0 +1,7 @@
+Note, You need to run terraform init so that terraform can download the code required to interact with the particular providers you are using in your .tf files.
+
+The terraform binary doesn't contain any information about the providers so this step is neccessary.
+
+The provider code will be downloaded into a .terraform folder. Might want to add this to your .gitignore.
+
+Safe to run init many times (idempotent). Always run it when getting started with new Terraform code.
