@@ -1,0 +1,4 @@
+.terraform folder is a temporary scratch directory
+
+.tfstate files are used to store state
+
