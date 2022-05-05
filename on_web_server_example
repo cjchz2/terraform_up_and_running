@@ -1,0 +1,72 @@
+On port 8080
+
+Using port 8080 instead of 80 because listening on any port smaller than 1024 requires root priv.
+
+Best practice is to run a web server with non-root user that limitied permissions.
+Sec risk to use low port number because an attacker who manages to compromise your server would get root priv as well.
+
+On Code:
+
+We send "Hello world" into index.html which will be the content of the website.
+
+We use busybox which is a installed on Ubuntu as a default, which spins up a webserver.
+
+Busybox is wrapped in nohup and &. The "&" will cause it to run in background. "nohup" will run the bash script itself even when the session is exited.
+
+The <<-EOF and EOF are Terraform's heredoc syntax which allows you to create multiline strings.
+
+On SG:
+
+With a security group, incoming and outcoming traffic from EC2 is not allowed.
+
+So need to make a security via terraform and allow ingress on port 8080.
+
+CIDR Block 0.0.0.0/0 is specified. CIDR blocks are a way to specify IP address ranges. For example, a CIDR block of 10.0.0.0/24 represents all IP address between 10.0.0.0 and 10.0.0.255
+
+CIDR block 0.0.0.0/0 allows requests from every IP address.
+
+
+On applying SG to an instance:
+
+You need to tell EC2 instance to actually use the SG using the ID of the SG into the vpc_security_group_ids argument of the aws_instance resource.
+
+To do that you need Terroform expressions.
+
+On Expressions:
+
+An expression in terraform is anything that returns a value. Simplest expression = literal. Think your AMI ID.
+
+Another type is a reference, which allows you to access values from other parts of your code.
+
+For your instance to reference the SG you need to use a resource attribute reference you need the following syntax.
+
+<PROVIDER_TYPE>.<NAME>.<ATTRIBUTE>
+
+<PROVIDER_TYPE> and <NAME> is the same as you would expect from your INSTANCE resource defination.
+
+<ATTRIBUTE> is either on of the args of that resource (e.g. name) or one of the attributes exported by the resource. For the latter you can refer to the documentation for attributes exported.
+
+In our case, the security group exports an attribute called id, so the expression to reference a SG will look like this:
+
+aws_security_group.instance.id
+
+On implicit dependency:
+
+When one resource adds another, Terraform spins up the upstream dependency first.
+You can use the graph command to get the dependency graph of your resources. The output is hard to read. It is in a language called DOT. You can viz it with graphviz.online.
+
+On +/- vs force replacement
+
+In terraform plan output, you will see +/- vs force replacment. Many args in aws_instance resource will force a replacment if changed. Which means the EC2 instance will be terminated and a completely new instance is created. This causes downtime but there are ways to do zero-downtime deployment.
+
+#Pinging the instance
+
+$ curl http://ec2-3-143-143-78.us-east-2.compute.amazonaws.com:8080
+
+curl http://3.144.181.235:8080
+
+
+
+The user-data is available to the instance with a simple HTTP request at this URL:
+
+http://3.144.181.235/latest/user-data
